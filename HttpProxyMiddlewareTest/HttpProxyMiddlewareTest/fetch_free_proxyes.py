@@ -160,9 +160,10 @@ def fetch_66ip():
 
     
 
-def check(proxy):
+def check1(proxy):
     import urllib2
-    url = "http://www.baidu.com/js/bdsug.js?v=1.0.3.0"
+    # url = "http://www.baidu.com/js/bdsug.js?v=1.0.3.0"
+    url="http://www.imaginato.com/wp-content/themes/micron-child/images/title-bg.png"
     proxy_handler = urllib2.ProxyHandler({'http': "http://" + proxy})
     opener = urllib2.build_opener(proxy_handler,urllib2.HTTPHandler)
     try:
@@ -170,6 +171,32 @@ def check(proxy):
         return response.code == 200
     except Exception:
         return False
+
+def check(proxy):
+    headers={'User-agent':'Opera/9.25 (Windows NT 5.1; U; en)'}
+    url = "http://www.imaginato.com/wp-content/themes/micron-child/images/title-bg.png"
+    request=urllib2.Request(url,headers=headers)
+    proxy_support = urllib2.ProxyHandler(proxy)
+        #--------cookie setting
+        # cj = cookielib.LWPCookieJar()
+        # cookie_support = urllib2.HTTPCookieProcessor(cj)
+        # opener = urllib2.build_opener(proxy_support,cookie_support,urllib2.HTTPHandler)
+        #-----http proxy setting
+    opener = urllib2.build_opener(proxy_support,urllib2.HTTPHandler)
+    urllib2.install_opener(opener)
+    logger.info("pryx")
+
+    try:
+        # response = opener.open(url,timeout=3)
+        response=urllib2.urlopen(url,timeout=3)
+        print  response.read()
+        print "xxxx"+proxy
+
+        return response.code == 200
+    except Exception:
+        return False
+
+
 
 def fetch_all(endpage=2):
     proxyes = []
@@ -200,3 +227,4 @@ if __name__ == '__main__':
     #print check("202.29.238.242:3128")
     for p in proxyes:
         print p
+

@@ -6,15 +6,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def get_html(url):
     request = urllib2.Request(url)
-    request.add_header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.99 Safari/537.36")
+    request.add_header("User-Agent",
+                       "Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11")
     html = urllib2.urlopen(request)
     return html.read()
+
 
 def get_soup(url):
     soup = BeautifulSoup(get_html(url), "lxml")
     return soup
+
 
 def fetch_kxdaili(page):
     """
@@ -31,22 +35,24 @@ def fetch_kxdaili(page):
             ip = tds[0].text
             port = tds[1].text
             latency = tds[4].text.split(" ")[0]
-            if float(latency) < 0.5: # 输出延迟小于0.5秒的代理
+            if float(latency) < 0.5:  # 输出延迟小于0.5秒的代理
                 proxy = "%s:%s" % (ip, port)
                 proxyes.append(proxy)
     except:
         logger.warning("fail to fetch from kxdaili")
     return proxyes
 
+
 def img2port(img_url):
     """
     mimvp.com的端口号用图片来显示, 本函数将图片url转为端口, 目前的临时性方法并不准确
     """
     code = img_url.split("=")[-1]
-    if code.find("AO0OO0O")>0:
+    if code.find("AO0OO0O") > 0:
         return 80
     else:
         return None
+
 
 def fetch_mimvp():
     """
@@ -60,16 +66,17 @@ def fetch_mimvp():
         tds = table.tbody.find_all("td")
         for i in range(0, len(tds), 10):
             id = tds[i].text
-            ip = tds[i+1].text
-            port = img2port(tds[i+2].img["src"])
-            response_time = tds[i+7]["title"][:-1]
-            transport_time = tds[i+8]["title"][:-1]
-            if port is not None and float(response_time) < 1 :
+            ip = tds[i + 1].text
+            port = img2port(tds[i + 2].img["src"])
+            response_time = tds[i + 7]["title"][:-1]
+            transport_time = tds[i + 8]["title"][:-1]
+            if port is not None and float(response_time) < 1:
                 proxy = "%s:%s" % (ip, port)
                 proxyes.append(proxy)
     except:
         logger.warning("fail to fetch from mimvp")
     return proxyes
+
 
 def fetch_xici():
     """
@@ -84,15 +91,16 @@ def fetch_xici():
         for i in range(1, len(trs)):
             tr = trs[i]
             tds = tr.find_all("td")
-            ip = tds[1].text
-            port = tds[2].text
-            speed = tds[6].div["title"][:-1]
-            latency = tds[7].div["title"][:-1]
+            ip = tds[2].text
+            port = tds[3].text
+            speed = tds[7].div["title"][:-1]
+            latency = tds[8].div["title"][:-1]
             if float(speed) < 3 and float(latency) < 1:
                 proxyes.append("%s:%s" % (ip, port))
     except:
         logger.warning("fail to fetch from xici")
     return proxyes
+
 
 def fetch_ip181():
     """
@@ -114,6 +122,7 @@ def fetch_ip181():
     except Exception as e:
         logger.warning("fail to fetch from ip181: %s" % e)
     return proxyes
+
 
 def fetch_httpdaili():
     """
@@ -140,6 +149,7 @@ def fetch_httpdaili():
         logger.warning("fail to fetch from httpdaili: %s" % e)
     return proxyes
 
+
 def fetch_66ip():
     """    
     http://www.66ip.cn/
@@ -158,46 +168,105 @@ def fetch_66ip():
         logger.warning("fail to fetch from httpdaili: %s" % e)
     return proxyes
 
-    
 
+
+def fetch_us_proxy():
+    """
+    http://www.xicidaili.com/nn/
+    """
+    proxyes = []
+    try:
+        url = "http://www.us-proxy.org/"
+        soup = get_soup(url)
+        table = soup.find("table", attrs={"id": "proxylisttable"})
+
+        # print table
+        # tbs = table.find_all("tr").find_all("td")
+        tbs=table.find_all("tr")
+        # print trs
+        for i in range(1, 20):
+            # print tbs[i]
+            # print '----\n'
+            tr = tbs[i]
+            tds = tr.find_all("td")
+            ip = tds[0].text
+            port = tds[1].text
+            # print ip+":"+port
+            # port = tds[3].text
+            # speed = tds[7].div["title"][:-1]
+            # latency = tds[8].div["title"][:-1]
+            # if float(speed) < 3 and float(latency) < 1:
+            proxyes.append("%s:%s" % (ip, port))
+    except Exception as e:
+        print e
+        logger.warning("fail to fetch from us-proxy.org")
+    return proxyes
+
+
+
+import string
 def check(proxy):
     import urllib2
-    url = "http://www.baidu.com/js/bdsug.js?v=1.0.3.0"
+    # url = "http://www.baidu.com/js/bdsug.js?v=1.0.3.0"
+    url = "http://qd.lianjia.com/ershoufang/pg2/"
     proxy_handler = urllib2.ProxyHandler({'http': "http://" + proxy})
-    opener = urllib2.build_opener(proxy_handler,urllib2.HTTPHandler)
+    opener = urllib2.build_opener(proxy_handler, urllib2.HTTPHandler)
     try:
-        response = opener.open(url,timeout=3)
-        return response.code == 200 and response.url == url
+        response = opener.open(url, timeout=3)
+        # print  opener.open(url, timeout=3).read()
+
+        # proxy_support = urllib2.ProxyHandler(proxy)
+        # opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
+        # urllib2.install_opener(opener)
+        # html = urllib2.urlopen(url).read()
+        # print html
+        # if string.find(html,'<h1>Unauthorized')!=-1:
+        #     print "proxy error"
+        #     return False
+        # print response.read()
+        print 'good proxy:' + proxy
+        return response.code == 200
     except Exception:
+        print "this proxy is bad:" + proxy
         return False
+
+
+
+
+
 
 def fetch_all(endpage=2):
     proxyes = []
-    for i in range(1, endpage):
-        proxyes += fetch_kxdaili(i)
-    proxyes += fetch_mimvp()
-    proxyes += fetch_xici()
-    proxyes += fetch_ip181()
-    proxyes += fetch_httpdaili()
-    proxyes += fetch_66ip()
+    proxyes+=fetch_us_proxy()
+    # for i in range(1, endpage):
+    #     proxyes += fetch_kxdaili(i)
+    # proxyes += fetch_mimvp()
+    # proxyes += fetch_xici()
+    # proxyes += fetch_ip181()
+    # proxyes += fetch_httpdaili()
+    # proxyes += fetch_66ip()
     valid_proxyes = []
     logger.info("checking proxyes validation")
     for p in proxyes:
         if check(p):
             valid_proxyes.append(p)
-            print p
     return valid_proxyes
+
 
 if __name__ == '__main__':
     import sys
+
     root_logger = logging.getLogger("")
     stream_handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(name)-8s %(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S',)
+    formatter = logging.Formatter('%(name)-8s %(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S', )
     stream_handler.setFormatter(formatter)
     root_logger.addHandler(stream_handler)
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     proxyes = fetch_all()
-    #print check("202.29.238.242:3128")
+    # print check("202.29.238.242:3128")
     for p in proxyes:
         print p
+    #
+    # print check("178.140.174.37:8081")
+
