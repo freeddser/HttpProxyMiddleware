@@ -75,7 +75,7 @@ def check(proxy_ip):
 
     try:
             html = urllib2.urlopen(request).read()
-            print html
+            # print html
             if html.find("authType"):
                 print "Need AUTH"
             else:
@@ -84,26 +84,54 @@ def check(proxy_ip):
 
                 return True
 
-    except urllib2.URLError as e:
-            print 'Download error:', e.reason
-            html = None
-            # if num_retries > 0:
-            #     if hasattr(e, 'code') and 500 <= e.code < 600:
-            #         # recursively retry 5xx HTTP errors print download("http://httpstat.us/500")
-            #         return download(url, user_agent, num_retries - 1)
-
+    except:
+            print 'proxy error:'
             return False
-    
+
+
+def fetch_httpdaili():
+    """
+    http://www.httpdaili.com/mfdl/
+    更新比较频繁
+    """
+    proxyes = []
+    try:
+        url = "http://www.httpdaili.com/mfdl/"
+        soup = get_soup(url)
+        table = soup.find("div", attrs={"kb-item-wrap11"}).table
+        trs = table.find_all("tr")
+        for i in range(1, len(trs)):
+            try:
+                tds = trs[i].find_all("td")
+                ip = tds[0].text
+                port = tds[1].text
+                type = tds[2].text
+                if type == u"匿名":
+                    proxyes.append("%s:%s" % (ip, port))
+            except:
+                pass
+    except Exception as e:
+        print "fail to fetch from httpdaili: %s"
+    return proxyes
+
+
 
 if __name__ == '__main__':
     import sys
 
-    proxyes = fetch_us_proxy()[0]
-    print len(fetch_us_proxy())
-    listip= fetch_us_proxy()
-    for p in range(0,len(listip)):
-        print listip[p]
-        print check(listip[p])
+    proxyes = fetch_us_proxy()
+    proxyes+=fetch_httpdaili()
+    print len(proxyes)
+
+    valid_proxyes = []
+
+    for p in proxyes:
+        if check(p):
+            valid_proxyes.append(p)
+    print "###################can use those proxy##########"
+    print valid_proxyes
+
+
     # # print check("202.29.238.242:3128")
     # for p in proxyes:
     #     print check(p)
